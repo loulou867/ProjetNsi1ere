@@ -1,0 +1,82 @@
+import tkinter as tk
+
+# Taille du tableau
+ROWS = 6
+COLS = 7
+
+# Fonction pour placer un jeton dans la colonne sélectionnée
+def drop_token(col):
+    global current_player
+    for row in range(ROWS - 1, -1, -1):
+        if board[row][col] == 0:
+            board[row][col] = current_player
+            update_board()
+            if check_winner(row, col):
+                label.config(text=f"Joueur {current_player} a gagné!")
+                disable_buttons()
+                return
+            current_player = 1 if current_player == 2 else 2
+            label.config(text=f"C'est au tour du Joueur {current_player}")
+            return
+
+# Vérifie s'il y a un gagnant
+def check_winner(row, col):
+    player = board[row][col]
+    # Vérification horizontale
+    for c in range(COLS - 3):
+        if all(board[row][c + i] == player for i in range(4)):
+            return True
+    # Vérification verticale
+    for r in range(ROWS - 3):
+        if all(board[r + i][col] == player for i in range(4)):
+            return True
+    # Vérification diagonale ascendante
+    for r in range(ROWS - 3):
+        for c in range(COLS - 3):
+            if all(board[r + i][c + i] == player for i in range(4)):
+                return True
+    # Vérification diagonale descendante
+    for r in range(3, ROWS):
+        for c in range(COLS - 3):
+            if all(board[r - i][c + i] == player for i in range(4)):
+                return True
+    return False
+
+# Met à jour l'affichage de la grille
+def update_board():
+    for i in range(ROWS):
+        for j in range(COLS):
+            color = 'white' if board[i][j] == 0 else 'yellow' if board[i][j] == 1 else 'red'
+            canvas.itemconfig(circles[i][j], fill=color)
+
+# Désactive les boutons après la victoire
+def disable_buttons():
+    for button in buttons:
+        button.config(state=tk.DISABLED)
+
+# Création de la fenêtre principale
+root = tk.Tk()
+root.title("Puissance 4")
+
+# Création de la grille
+canvas = tk.Canvas(root, width=COLS * 50, height=ROWS * 50)
+canvas.pack()
+
+circles = [[canvas.create_oval(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='white') for j in range(COLS)] for i in range(ROWS)]
+
+# Création des boutons pour chaque colonne
+buttons = [tk.Button(root, text=f"Col {i+1}", command=lambda c=i: drop_token(c)) for i in range(COLS)]
+for i, button in enumerate(buttons):
+    button.pack()
+
+# Création du tableau du jeu
+board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+
+# Joueur actuel (1 ou 2)
+current_player = 1
+
+# Étiquette pour afficher le joueur actuel
+label = tk.Label(root, text=f"C'est au tour du Joueur {current_player}", font=("Helvetica", 16))
+label.pack()
+
+root.mainloop()
